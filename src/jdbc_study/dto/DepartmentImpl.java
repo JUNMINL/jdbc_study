@@ -15,39 +15,28 @@ import jdbc_study.jdbc.MySQLJdbcUtil;
 
 public class DepartmentImpl implements DepartmentDao {
 	Logger LOG = LogManager.getLogger();
-	
+
 	@Override
 	public List<Department> selectDepartmentByAll() {
 		List<Department> list = new ArrayList<>();
 		String sql = "select deptno, deptname, floor from department";
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
-		try {
-			conn = MySQLJdbcUtil.getConnection();
-			pstmt = conn.prepareStatement(sql);
-			LOG.debug(pstmt);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				int deptNo = rs.getInt("deptno");
-				String deptName = rs.getString("deptname");
-				int floor = rs.getInt("floor");
-				Department dept = new Department(deptNo, deptName, floor);
-				list.add(dept);
+		try (Connection conn = MySQLJdbcUtil.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet rs = pstmt.executeQuery()) {
+			while (rs.next()) {
+				list.add(getDepartment(rs));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			try {
-				rs.close();
-				pstmt.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 		}
 		return list;
+	}
+
+	private Department getDepartment(ResultSet rs) throws SQLException {
+		int deptNo = rs.getInt("deptno");
+		String deptName = rs.getString("deptname");
+		int floor = rs.getInt("floor");
+		return new Department(deptNo, deptName, floor);
 	}
 
 }
